@@ -1,49 +1,51 @@
 const socket = io('https://glacial-thicket-72816.herokuapp.com'); // Backend URL
-
-let currentPlayer = 'player1';
+let currentPlayer = '';
 let gameBoard = [];
 let roomCode = '';
 
 // Oda oluşturma
 function createRoom() {
-    fetch('https://glacial-thicket-72816.herokuapp.com/create-room', {  // Backend'e istek
-        method: 'POST',
-    })
-    .then(response => response.json())
-    .then(data => {
-        roomCode = data.roomCode;
-        alert('Oda Kodu: ' + roomCode);
-        document.getElementById('roomCode').value = roomCode;
-        initializeBoard();
-        document.getElementById('createRoomBtn').disabled = true;
-        document.getElementById('joinRoomBtn').disabled = true;
-    })
-    .catch(error => console.error('Oda oluşturma hatası:', error));
+    fetch('https://glacial-thicket-72816.herokuapp.com/create-room', { method: 'POST' })
+        .then((response) => response.json())
+        .then((data) => {
+            roomCode = data.roomCode;
+            alert(`Oda kodunuz: ${roomCode}`);
+            document.getElementById('roomCode').value = roomCode;
+            currentPlayer = 'player1';
+            initializeBoard();
+        })
+        .catch((error) => console.error('Oda oluşturma hatası:', error));
 }
 
 // Odaya katılma
 function joinRoom() {
     const enteredRoomCode = document.getElementById('roomCode').value;
-    fetch('https://glacial-thicket-72816.herokuapp.com/join-room', {  // Backend'e istek
+
+    if (!enteredRoomCode) {
+        alert('Lütfen geçerli bir oda kodu girin!');
+        return;
+    }
+
+    fetch('https://glacial-thicket-72816.herokuapp.com/join-room', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ roomCode: enteredRoomCode }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode: enteredRoomCode, player: 'player2' }),
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'Odaya katıldınız') {
-            alert('Odaya katıldınız: ' + enteredRoomCode);
-            initializeBoard();
-        } else {
-            alert('Geçersiz oda kodu!');
-        }
-    })
-    .catch(error => console.error('Odaya katılma hatası:', error));
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.message === 'Odaya katıldınız') {
+                alert('Odaya başarıyla katıldınız: ' + enteredRoomCode);
+                roomCode = enteredRoomCode;
+                currentPlayer = 'player2';
+                initializeBoard();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch((error) => console.error('Odaya katılma hatası:', error));
 }
 
-// Oyun tahtasını başlatma
+// Oyun tahtası
 function initializeBoard() {
     gameBoard = [];
     const boardElement = document.getElementById('gameBoard');
@@ -68,42 +70,20 @@ function initializeBoard() {
     boardElement.appendChild(table);
 }
 
-// Hamle yapma
+// Hamle
 function makeMove(row, col) {
     const cell = gameBoard[row][col];
-
-    if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
+    if (cell.innerText) {
         alert('Bu hücre zaten seçildi!');
         return;
     }
 
-    if (currentPlayer === 'player1') {
-        cell.classList.add('hit');
-        currentPlayer = 'player2';
-    } else {
-        cell.classList.add('miss');
-        currentPlayer = 'player1';
-    }
-
-    updateMessage(`Sıra ${currentPlayer} oyuncusunda.`);
-
-    // Backend'e hamle gönder
+    cell.innerText = currentPlayer === 'player1' ? 'X' : 'O';
     socket.emit('move', { roomCode, row, col, player: currentPlayer });
 }
 
-// Mesaj güncelleme
-function updateMessage(message) {
-    const messageDiv = document.getElementById('messages');
-    messageDiv.innerHTML = message;
-}
-
-// Oyun başladığında oyuncuları duyur
-socket.on('start-game', (data) => {
-    alert('Oyun başladı!');
-    document.getElementById('players').innerText = `Oyuncular: ${data.players.join(', ')}`;
-});
-
-// Rakip oyuncu hareket yaptı
-socket.on('opponentMove', (moveData) => {
-    makeMove(moveData.row, moveData.col, 'opponent'); // Rakip hareketini işleme
+// Rakip hamle
+socket.on('opponentMove', ({ row, col, player }) => {
+    const cell = gameBoard[row][col];
+    cell.innerText = player === 'player1' ? 'X' : 'O';
 });
