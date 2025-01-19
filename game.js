@@ -72,7 +72,7 @@ function endTurn() {
 initializeBoard();
 updateGameInfo(`Sıra ${currentPlayer} oyuncusunda.`);
 // Socket.IO server bağlantısı
-const socket = io('http://localhost:3000');
+const socket = io('https://git.heroku.com/glacial-thicket-72816.git');
 
 // Oda oluşturulursa
 function createRoom() {
