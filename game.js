@@ -1,7 +1,49 @@
-let currentPlayer = 'player1'; // İlk başta player1 başlar
+let currentPlayer = 'player1'; // 'player1' ve 'player2' olacak
 let gameBoard = [];
-let isGameOver = false;
+let roomCode = '';
 
+const socket = io('https://glacial-thicket-72816.herokuapp.com'); // Backend URL
+
+// Oda oluşturma
+function createRoom() {
+    fetch('https://glacial-thicket-72816.herokuapp.com/create-room', {  // Backend'e istek
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        roomCode = data.roomCode;
+        alert('Oda Kodu: ' + roomCode);
+        document.getElementById('roomCode').value = roomCode;
+        initializeBoard();
+        document.getElementById('createRoomBtn').disabled = true;
+        document.getElementById('joinRoomBtn').disabled = true;
+    })
+    .catch(error => console.error('Oda oluşturma hatası:', error));
+}
+
+// Odaya katılma
+function joinRoom() {
+    const enteredRoomCode = document.getElementById('roomCode').value;
+    fetch('https://glacial-thicket-72816.herokuapp.com/join-room', {  // Backend'e istek
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ roomCode: enteredRoomCode }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Odaya katıldınız') {
+            alert('Odaya katıldınız: ' + enteredRoomCode);
+            initializeBoard();
+        } else {
+            alert('Geçersiz oda kodu!');
+        }
+    })
+    .catch(error => console.error('Odaya katılma hatası:', error));
+}
+
+// Oyun tahtasını başlatma
 function initializeBoard() {
     gameBoard = [];
     const boardElement = document.getElementById('gameBoard');
@@ -26,98 +68,37 @@ function initializeBoard() {
     boardElement.appendChild(table);
 }
 
+// Hamle yapma
 function makeMove(row, col) {
-    if (isGameOver) {
-        return;
-    }
-
     const cell = gameBoard[row][col];
 
-    // Zaten vurulmuş olan hücreyi tekrar seçemezsin
     if (cell.classList.contains('hit') || cell.classList.contains('miss')) {
         alert('Bu hücre zaten seçildi!');
         return;
     }
 
-    // Hamle yapma
     if (currentPlayer === 'player1') {
         cell.classList.add('hit');
         currentPlayer = 'player2';
-        updateGameInfo('Sıra player2\'de.');
     } else {
         cell.classList.add('miss');
         currentPlayer = 'player1';
-        updateGameInfo('Sıra player1\'de.');
-    }
-}
-
-function updateGameInfo(message) {
-    document.getElementById('messages').innerText = message;
-    document.getElementById('playerTurn').innerText = `Şu an oynayan oyuncu: ${currentPlayer}`;
-}
-
-function endTurn() {
-    // Burada tur bitirme işlemleri yapılabilir
-    // Şu an için sadece oyuncunun sırasını değiştireceğiz.
-    if (currentPlayer === 'player1') {
-        currentPlayer = 'player2';
-    } else {
-        currentPlayer = 'player1';
     }
 
-    updateGameInfo(`Sıra ${currentPlayer} oyuncusunda.`);
+    updateMessage(`Sıra ${currentPlayer} oyuncusunda.`);
+
+    // Backend'e hamle gönder
+    socket.emit('move', { row, col, player: currentPlayer });
 }
 
-// Oyunu başlat
-initializeBoard();
-updateGameInfo(`Sıra ${currentPlayer} oyuncusunda.`);
-// Socket.IO server bağlantısı
-const socket = io('https://git.heroku.com/glacial-thicket-72816.git');
-
-// Oda oluşturulursa
-function createRoom() {
-    const roomCode = generateRoomCode();
-    socket.emit('createRoom', roomCode);
+// Mesaj güncelleme
+function updateMessage(message) {
+    const messageDiv = document.getElementById('messages');
+    messageDiv.innerHTML = message;
 }
 
-// Odaya katılma
-function joinRoom(roomCode) {
-    socket.emit('joinRoom', roomCode);
-}
-
-// Oda kodu üretme (rastgele 5 haneli kod)
-function generateRoomCode() {
-    let code = '';
-    for (let i = 0; i < 5; i++) {
-        code += Math.floor(Math.random() * 10); // 0-9 arasında rastgele sayı
-    }
-    return code;
-}
-
-// Hamle yapma
-function makeMove(row, col) {
-    const move = { row, col };
-    socket.emit('makeMove', roomCode, move); // Hamleyi sunucuya gönder
-}
-
-// Oda oluşturulursa
-socket.on('roomCreated', (roomCode) => {
-    console.log('Oda kodu: ' + roomCode);
-    alert('Oda oluşturuldu! Oda kodu: ' + roomCode);
-});
-
-// Odaya katıldığında
-socket.on('gameStarted', (message) => {
-    alert(message);
-});
-
-// Hamle yapıldığında
-socket.on('moveMade', (move) => {
-    console.log('Hamle yapıldı: ', move);
-    // Hamleyi tahtada görsel olarak güncelle
-});
-
-// Hata durumunda
-socket.on('error', (message) => {
-    alert(message);
+// Oyun başladığında oyuncuları duyur
+socket.on('start-game', (data) => {
+    alert('Oyun başladı!');
+    document.getElementById('players').innerText = `Oyuncular: ${data.players.join(', ')}`;
 });

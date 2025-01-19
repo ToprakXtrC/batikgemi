@@ -3,29 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batık Gemi Oyunu</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Batik Gemi</title>
+    <style>
+        /* Stil dosyalarını buraya ekleyebilirsiniz */
+        table {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            border-collapse: collapse;
+        }
+
+        td {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ccc;
+        }
+
+        td.hit {
+            background-color: red;
+        }
+
+        td.miss {
+            background-color: lightblue;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Batık Gemi Oyunu</h1>
+    <div id="messages"></div>
 
-        <!-- Oyun tahtası -->
-        <div class="game-info">
-            <div id="playerTurn"></div>
-            <div id="messages"></div>
-        </div>
-
-        <div class="game-board" id="gameBoard">
-            <!-- Oyun tahtası burada dinamik olarak oluşturulacak -->
-        </div>
-
-        <div class="game-controls">
-            <button id="endTurnBtn" onclick="endTurn()" disabled>Turu Bitir</button>
-        </div>
-
-    </div>
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <button id="createRoomBtn" onclick="createRoom()">Oda Oluştur</button>
+    <button id="joinRoomBtn" onclick="joinRoom()">Odaya Katıl</button>
+    <br><br>
+    Oda Kodu: <input type="text" id="roomCode" readonly>
+    <br><br>
+    
+    <div id="gameBoard"></div>
 
     <script src="game.js"></script>
 </body>
