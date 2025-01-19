@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batık Gemi Oyunu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Batık Gemi Oyunu</h1>
+
+        <!-- Oda oluşturma ve katılma alanı -->
+        <div class="room-actions">
+            <button id="createRoomBtn" onclick="createRoom()">Oda Oluştur</button>
+            <button id="joinRoomBtn" onclick="joinRoom()">Odaya Katıl</button>
+            <input type="text" id="roomCode" placeholder="Oda Kodu" />
+        </div>
+
+        <!-- Oyun tahtası -->
+        <div class="game-board" id="gameBoard">
+            <!-- Oyun tahtası burada dinamik olarak oluşturulacak -->
+        </div>
+
+        <!-- Oyun mesajları -->
+        <div id="messages"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

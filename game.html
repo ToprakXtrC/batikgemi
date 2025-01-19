@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batık Gemi Oyunu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Batık Gemi Oyunu</h1>
+
+        <!-- Oyun tahtası -->
+        <div class="game-info">
+            <div id="playerTurn"></div>
+            <div id="messages"></div>
+        </div>
+
+        <div class="game-board" id="gameBoard">
+            <!-- Oyun tahtası burada dinamik olarak oluşturulacak -->
+        </div>
+
+        <div class="game-controls">
+            <button id="endTurnBtn" onclick="endTurn()" disabled>Turu Bitir</button>
+        </div>
+
+    </div>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <script src="game.js"></script>
+</body>
+</html>
