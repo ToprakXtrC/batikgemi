@@ -1,8 +1,8 @@
-let currentPlayer = 'player1'; // 'player1' ve 'player2' olacak
+const socket = io('https://glacial-thicket-72816.herokuapp.com'); // Backend URL
+
+let currentPlayer = 'player1';
 let gameBoard = [];
 let roomCode = '';
-
-const socket = io('https://glacial-thicket-72816.herokuapp.com'); // Backend URL
 
 // Oda oluşturma
 function createRoom() {
@@ -88,7 +88,7 @@ function makeMove(row, col) {
     updateMessage(`Sıra ${currentPlayer} oyuncusunda.`);
 
     // Backend'e hamle gönder
-    socket.emit('move', { row, col, player: currentPlayer });
+    socket.emit('move', { roomCode, row, col, player: currentPlayer });
 }
 
 // Mesaj güncelleme
@@ -101,4 +101,9 @@ function updateMessage(message) {
 socket.on('start-game', (data) => {
     alert('Oyun başladı!');
     document.getElementById('players').innerText = `Oyuncular: ${data.players.join(', ')}`;
+});
+
+// Rakip oyuncu hareket yaptı
+socket.on('opponentMove', (moveData) => {
+    makeMove(moveData.row, moveData.col, 'opponent'); // Rakip hareketini işleme
 });
